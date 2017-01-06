@@ -14,8 +14,27 @@ function onSignIn(googleUser) {
 
 var auth2;
 
-function appStart(){
-    console.log('hello');
+function appStart() {
+    gapi.load('auth2', initSigninV2);
+}
+
+function initSigninV2() {
+    auth2 = gapi.auth2.getAuthInstance();
+    auth2.isSignedIn.listen(signinChanged);
+    auth2.currentUser.listen(userChanged);
+    if (auth2.isSignedIn.get() == true) {
+        auth2.signIn();
+    }
+}
+
+function signinChanged(isSignedIn) {
+    console.log('signinChanged() = ' + isSignedIn);
+    if (isSignedIn) {
+        console.log('the user must be signed in to print this');
+        var googleUser = auth2.currentuser.get();
+        var authResponse = googleUser.getAuthResponse();
+        var profile = googleUser
+    }
 }
 
 function signOut() {
