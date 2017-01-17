@@ -33,7 +33,10 @@ function signinChanged(isSignedIn) {
         console.log('the user must be signed in to print this');
         var googleUser = auth2.currentuser.get();
         var authResponse = googleUser.getAuthResponse();
-        var profile = googleUser
+        var profile = googleUser.getBasicProfile();
+        
+        $('#email').html('<p>' + profile.getEmail() + '</p>');
+        $('#photo').html('<img src = "' + profile.getImageUrl() + '">');
     }
 }
 
