@@ -14,3 +14,18 @@ Mongo.connect(mongo_url, function (err, db) {
         console.log('Connected to MongoDB');
     }
 });
+
+
+var app = express();
+
+//body parsing middleware (nescessary to parse json fecieved form clients)
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended : false }));
+
+app.get('/', function(req, res) {
+    res.send('hello');
+});
+
+app.listen(3000);
+
+console.log('listening on 3000');
