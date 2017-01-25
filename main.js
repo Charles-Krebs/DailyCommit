@@ -49,3 +49,10 @@ function signOut() {
     
     $('.g-signin2').show();
 }
+
+function disconnect() {
+   gapi.auth2.getAuthInstance().disconnect();
+   $('.g-signin2').show();
+   $('#email').html('');
+   $('#photo').html('');
+}
