@@ -1,58 +1,80 @@
+// TODO : http://stackoverflow.com/questions/38240504/refresh-expired-jwt-in-browser-when-using-google-sign-in-for-websites
+// OR   : http://stackoverflow.com/questions/32150845/how-to-refresh-expired-google-sign-in-logins?rq=1
+// READ : http://stackoverflow.com/questions/3105296/if-rest-applications-are-supposed-to-be-stateless-how-do-you-manage-sessions
+// READ : http://www.cloudidentity.com/blog/2014/03/03/principles-of-token-validation/
 
-if(window.location.hostname === '127.0.0.1') {
-    window.location = 'http://localhost:1898' ;
+// this statement is a redirect for brackets development
+if (window.location.hostname === '127.0.0.1') {
+  window.location = 'http://localhost:1898';
 }
 
+// prepend the url of node.js server
+function route(url) {
+  return 'http://192.168.1.9:3000' + url;
+}
+
+var profile;      // google user profile
+var authResponse; // google user auth response
+  
 function onSignIn(googleUser) {
-  var profile = googleUser.getBasicProfile();
-  console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-  console.log('Name: ' + profile.getName());
-  console.log('Image URL: ' + profile.getImageUrl());
-  console.log('Email: ' + profile.getEmail());
-    
-    $('.g-signin2').hide();
-}
+  profile       = googleUser.getBasicProfile();
+  authResponse  = googleUser.getAuthResponse();
+  
+  var login = {
+      'id'            : profile.getId(),
+      'name'          : profile.getName(),
+      'givenName'     : profile.getGivenName(),
+      'familyName'    : profile.getFamilyName(),
+      'imageUrl'      : profile.getImageUrl(),
+      'email'         : profile.getEmail(),
+      'hostedDomain'  : googleUser.getHostedDomain()
+  }
 
-var auth2;
+  post('/login', login);
 
-function appStart() {
-    gapi.load('auth2', initSigninV2);
-}
-
-function initSigninV2() {
-    auth2 = gapi.auth2.getAuthInstance();
-    auth2.isSignedIn.listen(signinChanged);
-    auth2.currentUser.listen(userChanged);
-    if (auth2.isSignedIn.get() == true) {
-        auth2.signIn();
-    }
-}
-
-function signinChanged(isSignedIn) {
-    console.log('signinChanged() = ' + isSignedIn);
-    if (isSignedIn) {
-        console.log('the user must be signed in to print this');
-        var googleUser = auth2.currentuser.get();
-        var authResponse = googleUser.getAuthResponse();
-        var profile = googleUser.getBasicProfile();
-        
-        $('#email').html('<p>' + profile.getEmail() + '</p>');
-        $('#photo').html('<img src = "' + profile.getImageUrl() + '">');
-    }
+  $('.g-signin2').hide();
+  $('#email').html('<p>' + profile.getEmail() + '</p>');
+  $('#photo').html('<img src="' + profile.getImageUrl() + '">');
 }
 
 function signOut() {
-    var auth2 = gapi.auth2.getAuthInstance();
-    auth2.signOut().then(function () {
-      console.log('User signed out.');
-    });
-    
-    $('.g-signin2').show();
+  gapi.auth2.getAuthInstance().signOut();
+  $('.g-signin2').show();
+  $('#email').html('');
+  $('#photo').html('');
 }
 
 function disconnect() {
-   gapi.auth2.getAuthInstance().disconnect();
-   $('.g-signin2').show();
-   $('#email').html('');
-   $('#photo').html('');
+  gapi.auth2.getAuthInstance().disconnect();
+  $('.g-signin2').show();
+  $('#email').html('');
+  $('#photo').html('');
 }
+
+function post(url, json, success, error) {
+  $.ajax({
+    url : route(url),
+    method : 'POST',
+    data : json,
+    headers : {
+      'Authorization' : authResponse.id_token
+    },
+    success : function() {
+      if(success) success();
+    },
+    error : function() {
+      if(error) error();
+    }
+  });
+}
+
+$('#plus-button').click(function() {
+    $('#plus-button-dialog').dialog('open');
+});
+
+$('#plus-button-dialog').dialog({
+    autoOpen: false,
+    height: 400,
+    width: 350,
+    modal: true,
+});
